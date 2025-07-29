@@ -1,4 +1,4 @@
-export interface LearningSite {
+export interface Site {
   id: string
   name: string
   url: string
@@ -10,10 +10,9 @@ export interface LearningSite {
 export interface TabInfo {
   tabId: number
   siteId: string
-  url: string
 }
 
 export interface StorageData {
-  sites: LearningSite[]
+  sites: Site[]
   trackedTabs: TabInfo[]
 }

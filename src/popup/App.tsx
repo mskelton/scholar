@@ -9,12 +9,13 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { LearningSite } from '@/types'
-import { generateId, getDomainFromUrl, formatDate } from '@/lib/utils'
+import { Site } from '@/types'
+import { getDomainFromUrl, formatDate } from '@/lib/utils'
 import { XIcon } from 'lucide-react'
+import { sendMessage } from './sendMessage'
 
-function App() {
-  const [sites, setSites] = useState<LearningSite[]>([])
+export function App() {
+  const [sites, setSites] = useState<Site[]>([])
   const [newUrl, setNewUrl] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
@@ -23,62 +24,54 @@ function App() {
   }, [])
 
   const loadSites = async () => {
-    const result = await chrome.storage.local.get(['sites'])
-    setSites(result.sites || [])
-  }
-
-  const saveSites = async (updatedSites: LearningSite[]) => {
-    await chrome.storage.local.set({ sites: updatedSites })
-    setSites(updatedSites)
+    const response = await sendMessage('GET_SITES')
+    setSites(response || [])
   }
 
   const addSite = async () => {
     if (!newUrl.trim()) return
 
     setIsLoading(true)
-    const url = newUrl.trim()
-    const domain = getDomainFromUrl(url)
+    try {
+      const url = newUrl.trim()
+      const domain = getDomainFromUrl(url)
 
-    const newSite: LearningSite = {
-      id: generateId(),
-      name: domain,
-      url,
-      currentPage: url,
-      lastVisited: Date.now(),
-      createdAt: Date.now(),
+      const siteData = {
+        name: domain,
+        url,
+        currentPage: url,
+        lastVisited: Date.now(),
+      }
+
+      const response = await sendMessage('ADD_SITE', siteData)
+
+      setSites(prevSites => [...prevSites, response])
+      setNewUrl('')
+    } catch (error) {
+      console.error('Error adding site:', error)
+    } finally {
+      setIsLoading(false)
     }
-
-    const updatedSites = [...sites, newSite]
-    await saveSites(updatedSites)
-
-    setNewUrl('')
-    setIsLoading(false)
   }
 
   const removeSite = async (siteId: string) => {
-    const updatedSites = sites.filter(site => site.id !== siteId)
-    await saveSites(updatedSites)
+    try {
+      await sendMessage('REMOVE_SITE', { siteId })
+
+      setSites(prevSites => prevSites.filter(site => site.id !== siteId))
+    } catch (error) {
+      console.error('Error removing site:', error)
+    }
   }
 
-  const openSite = async (site: LearningSite) => {
-    const tab = await chrome.tabs.create({ url: site.currentPage })
+  const openSite = async (site: Site) => {
+    await sendMessage('OPEN_SITE', { siteId: site.id })
 
-    const tabInfo = {
-      tabId: tab.id!,
-      siteId: site.id,
-      url: site.currentPage,
-    }
-
-    const result = await chrome.storage.local.get(['trackedTabs'])
-    const trackedTabs = result.trackedTabs || []
-    trackedTabs.push(tabInfo)
-
-    await chrome.storage.local.set({ trackedTabs })
-
-    const updatedSites = sites.map(s =>
-      s.id === site.id ? { ...s, lastVisited: Date.now() } : s
+    setSites(prevSites =>
+      prevSites.map(s =>
+        s.id === site.id ? { ...s, lastVisited: Date.now() } : s
+      )
     )
-    await saveSites(updatedSites)
   }
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -168,5 +161,3 @@ function App() {
     </div>
   )
 }
-
-export default App
