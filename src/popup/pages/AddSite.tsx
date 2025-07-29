@@ -1,8 +1,9 @@
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Site } from '@/types'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Loader2Icon, XIcon } from 'lucide-react'
+import { XIcon } from 'lucide-react'
 import { useState } from 'react'
 import { goBack } from 'react-chrome-extension-router'
 import { sendMessage } from '../sendMessage'
@@ -53,11 +54,10 @@ export function AddSite() {
       </div>
 
       <div className="space-y-4">
-        <div className="space-y-2">
-          <label htmlFor="name" className="text-sm font-medium">
-            Site Name
-          </label>
+        <div className="grid w-full max-w-sm items-center gap-3">
+          <Label htmlFor="name">Site Name</Label>
           <Input
+            id="name"
             value={formData.name}
             onChange={(e) =>
               setFormData((prev) => ({ ...prev, name: e.target.value }))
@@ -65,11 +65,11 @@ export function AddSite() {
             disabled={isSubmitting}
           />
         </div>
-        <div className="space-y-2">
-          <label htmlFor="url" className="text-sm font-medium">
-            URL
-          </label>
+
+        <div className="grid w-full max-w-sm items-center gap-3">
+          <Label htmlFor="url">URL</Label>
           <Input
+            id="url"
             value={formData.url}
             onChange={(e) =>
               setFormData((prev) => ({ ...prev, url: e.target.value }))
@@ -80,15 +80,10 @@ export function AddSite() {
 
         <Button
           onClick={handleSubmit}
-          disabled={
-            isSubmitting || !formData.name.trim() || !formData.url.trim()
-          }
+          disabled={isSubmitting}
           className="w-full"
         >
-          {isSubmitting && (
-            <Loader2Icon className="w-4 h-4 mr-2 animate-spin" />
-          )}
-          Add Site
+          Save
         </Button>
       </div>
     </div>

@@ -7,9 +7,18 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { formatDate } from '@/lib/utils'
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from '@/components/ui/drawer'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { PlusIcon, XIcon } from 'lucide-react'
+import { XIcon } from 'lucide-react'
+import { useState } from 'react'
 import { Link } from 'react-chrome-extension-router'
 import { sendMessage } from '../sendMessage'
 import { useSites } from '../utils/useSites'
@@ -18,6 +27,8 @@ import { AddSite } from './AddSite'
 export function SiteList() {
   const queryClient = useQueryClient()
   const { data: sites } = useSites()
+  const [siteToRemove, setSiteToRemove] = useState<any>(null)
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false)
 
   const { mutateAsync: removeSite } = useMutation({
     mutationFn: async (siteId: string) => {
@@ -25,12 +36,25 @@ export function SiteList() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['sites'] })
+      setIsDrawerOpen(false)
+      setSiteToRemove(null)
     },
   })
 
   const openSite = async (site: any) => {
     await sendMessage('OPEN_SITE', { siteId: site.id })
     queryClient.invalidateQueries({ queryKey: ['sites'] })
+  }
+
+  const handleRemoveClick = (site: any) => {
+    setSiteToRemove(site)
+    setIsDrawerOpen(true)
+  }
+
+  const handleConfirmRemove = () => {
+    if (siteToRemove) {
+      removeSite(siteToRemove.id)
+    }
   }
 
   return (
@@ -55,7 +79,7 @@ export function SiteList() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => removeSite(site.id)}
+                  onClick={() => handleRemoveClick(site)}
                   className="size-8"
                 >
                   <XIcon />
@@ -77,6 +101,28 @@ export function SiteList() {
           </Card>
         ))}
       </div>
+
+      <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle>Are you absolutely sure?</DrawerTitle>
+            <DrawerDescription>
+              This will permanently remove "{siteToRemove?.name}" and cannot be
+              undone.
+            </DrawerDescription>
+          </DrawerHeader>
+          <DrawerFooter>
+            <Button onClick={handleConfirmRemove} variant="destructive">
+              Remove Site
+            </Button>
+            <DrawerClose>
+              <Button className="w-full" variant="outline">
+                Cancel
+              </Button>
+            </DrawerClose>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
     </div>
   )
 }
