@@ -29,39 +29,31 @@ export function App() {
   }
 
   const addSite = async () => {
-    if (!newUrl.trim()) return
+    if (!newUrl.trim()) {
+      return
+    }
 
     setIsLoading(true)
-    try {
-      const url = newUrl.trim()
-      const domain = getDomainFromUrl(url)
+    const url = newUrl.trim()
+    const domain = getDomainFromUrl(url)
 
-      const siteData = {
-        name: domain,
-        url,
-        currentPage: url,
-        lastVisited: Date.now(),
-      }
-
-      const response = await sendMessage('ADD_SITE', siteData)
-
-      setSites(prevSites => [...prevSites, response])
-      setNewUrl('')
-    } catch (error) {
-      console.error('Error adding site:', error)
-    } finally {
-      setIsLoading(false)
+    const siteData = {
+      name: domain,
+      url,
+      currentPage: url,
+      lastVisited: Date.now(),
     }
+
+    const response = await sendMessage('ADD_SITE', siteData)
+
+    setSites(prevSites => [...prevSites, response])
+    setNewUrl('')
+    setIsLoading(false)
   }
 
   const removeSite = async (siteId: string) => {
-    try {
-      await sendMessage('REMOVE_SITE', { siteId })
-
-      setSites(prevSites => prevSites.filter(site => site.id !== siteId))
-    } catch (error) {
-      console.error('Error removing site:', error)
-    }
+    await sendMessage('REMOVE_SITE', { siteId })
+    setSites(prevSites => prevSites.filter(site => site.id !== siteId))
   }
 
   const openSite = async (site: Site) => {
