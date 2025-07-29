@@ -1,9 +1,8 @@
 {
-  "name": "chrome-learning-tracker",
+  "name": "scholar",
   "version": "1.0.0",
-  "description": "Chrome extension for tracking learning progress on documentation websites",
+  "description": "A Chrome extension that helps you track your progress when reading docs",
   "packageManager": "yarn@4.9.2",
-  "main": "index.js",
   "type": "module",
   "scripts": {
     "dev": "vite build --watch",
@@ -13,12 +12,14 @@
   },
   "keywords": [
     "chrome-extension",
+    "scholar",
     "learning",
     "documentation",
-    "progress-tracker"
+    "progress-tracker",
+    "education"
   ],
-  "author": "",
-  "license": "MIT",
+  "author": "Mark Skelton",
+  "license": "ISC",
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.14",
     "@radix-ui/react-label": "^2.1.7",
@@ -26,7 +27,7 @@
     "@radix-ui/react-toast": "^1.2.14",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "lucide-react": "^0.532.0",
+    "lucide-react": "^0.533.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "tailwind-merge": "^3.3.1"

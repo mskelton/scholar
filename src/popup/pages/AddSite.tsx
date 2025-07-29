@@ -1,19 +1,11 @@
-import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import { ArrowLeftIcon, Loader2Icon } from 'lucide-react'
-import { goBack } from 'react-chrome-extension-router'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { sendMessage } from '../sendMessage'
 import { Site } from '@/types'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { Loader2Icon, XIcon } from 'lucide-react'
+import { useState } from 'react'
+import { goBack } from 'react-chrome-extension-router'
+import { sendMessage } from '../sendMessage'
 
 export function AddSite() {
   const queryClient = useQueryClient()
@@ -46,70 +38,59 @@ export function AddSite() {
 
   return (
     <div className="p-4 space-y-4">
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-semibold">Add Site</h1>
+
         <Button
           variant="ghost"
-          size="sm"
+          size="icon"
           onClick={goBack}
           disabled={isSubmitting}
+          className="size-8"
         >
-          <ArrowLeftIcon className="w-4 h-4" />
+          <XIcon />
         </Button>
-        <h1 className="text-xl font-semibold">Add New Site</h1>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Site Information</CardTitle>
-          <CardDescription>
-            Enter the details of the documentation website you want to track
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <label htmlFor="name" className="text-sm font-medium">
-              Site Name
-            </label>
-            <Input
-              id="name"
-              placeholder="e.g., Playwright Docs"
-              value={formData.name}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, name: e.target.value }))
-              }
-              disabled={isSubmitting}
-            />
-          </div>
-          <div className="space-y-2">
-            <label htmlFor="url" className="text-sm font-medium">
-              URL
-            </label>
-            <Input
-              id="url"
-              placeholder="https://playwright.dev/"
-              value={formData.url}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, url: e.target.value }))
-              }
-              disabled={isSubmitting}
-            />
-          </div>
-        </CardContent>
-        <CardFooter>
-          <Button
-            onClick={handleSubmit}
-            disabled={
-              isSubmitting || !formData.name.trim() || !formData.url.trim()
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <label htmlFor="name" className="text-sm font-medium">
+            Site Name
+          </label>
+          <Input
+            value={formData.name}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, name: e.target.value }))
             }
-            className="w-full"
-          >
-            {isSubmitting && (
-              <Loader2Icon className="w-4 h-4 mr-2 animate-spin" />
-            )}
-            Add Site
-          </Button>
-        </CardFooter>
-      </Card>
+            disabled={isSubmitting}
+          />
+        </div>
+        <div className="space-y-2">
+          <label htmlFor="url" className="text-sm font-medium">
+            URL
+          </label>
+          <Input
+            value={formData.url}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, url: e.target.value }))
+            }
+            disabled={isSubmitting}
+          />
+        </div>
+
+        <Button
+          onClick={handleSubmit}
+          disabled={
+            isSubmitting || !formData.name.trim() || !formData.url.trim()
+          }
+          className="w-full"
+        >
+          {isSubmitting && (
+            <Loader2Icon className="w-4 h-4 mr-2 animate-spin" />
+          )}
+          Add Site
+        </Button>
+      </div>
     </div>
   )
 }

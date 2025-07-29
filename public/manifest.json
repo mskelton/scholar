@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "version": "1.0.0",
-  "name": "Learning Progress Tracker",
-  "description": "Track your learning progress on documentation websites",
+  "name": "Scholar",
+  "description": "Track your progress when reading docs",
   "permissions": ["storage", "tabs", "activeTab"],
   "host_permissions": ["<all_urls>"],
   "background": {
@@ -10,7 +10,7 @@
   },
   "action": {
     "default_popup": "src/popup/index.html",
-    "default_title": "Learning Progress Tracker"
+    "default_title": "Scholar"
   },
   "icons": {
     "16": "icons/icon16.png",

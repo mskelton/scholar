@@ -1,12 +1,8 @@
-import { type ClassValue, clsx } from 'clsx'
+import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
-}
-
-export function generateId(): string {
-  return Math.random().toString(36).substr(2, 9)
 }
 
 export function getDomainFromUrl(url: string): string {
@@ -19,9 +15,13 @@ export function getDomainFromUrl(url: string): string {
 }
 
 export function formatDate(timestamp: number): string {
-  return new Date(timestamp).toLocaleDateString()
+  return new Date(timestamp).toLocaleDateString('en-US', {
+    dateStyle: 'medium',
+  })
 }
 
 export function formatTime(timestamp: number): string {
-  return new Date(timestamp).toLocaleTimeString()
+  return new Date(timestamp).toLocaleTimeString('en-US', {
+    timeStyle: 'short',
+  })
 }

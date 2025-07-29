@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button'
 import {
   Card,
+  CardAction,
   CardDescription,
   CardFooter,
   CardHeader,
@@ -35,46 +36,43 @@ export function SiteList() {
   return (
     <div className="p-4 space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Your Learning Sites</h1>
-        <Link component={AddSite}>
-          <Button size="sm">
-            <PlusIcon className="w-4 h-4 mr-2" />
-            Add Site
-          </Button>
-        </Link>
+        <h1 className="text-xl font-semibold">Scholar</h1>
+        <Button asChild size="sm">
+          <Link component={AddSite}>Add Site</Link>
+        </Button>
       </div>
 
       <div className="space-y-3">
         {sites.map((site) => (
-          <Card key={site.id} className="hover:shadow-md transition-shadow">
-            <CardHeader className="pb-3">
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <CardTitle className="text-base">{site.name}</CardTitle>
-                  <CardDescription className="text-xs break-all">
-                    {site.currentPage}
-                  </CardDescription>
-                </div>
+          <Card key={site.id}>
+            <CardHeader>
+              <CardTitle>{site.name}</CardTitle>
+              <CardDescription className="text-xs truncate">
+                {site.currentPage}
+              </CardDescription>
+
+              <CardAction>
                 <Button
                   variant="ghost"
-                  size="sm"
+                  size="icon"
                   onClick={() => removeSite(site.id)}
-                  className="text-destructive hover:text-destructive"
+                  className="size-8"
                 >
-                  <XIcon className="w-4 h-4" />
+                  <XIcon />
                   <span className="sr-only">Remove site</span>
                 </Button>
-              </div>
+              </CardAction>
             </CardHeader>
-            <CardFooter className="pt-0">
-              <div className="flex justify-between items-center w-full">
-                <span className="text-xs text-muted-foreground">
-                  Last visited: {formatDate(site.lastVisited)}
-                </span>
-                <Button size="sm" onClick={() => openSite(site)}>
-                  Continue Learning
-                </Button>
-              </div>
+
+            <CardFooter>
+              <Button
+                className="w-full"
+                size="sm"
+                onClick={() => openSite(site)}
+                variant="secondary"
+              >
+                Continue Learning
+              </Button>
             </CardFooter>
           </Card>
         ))}
