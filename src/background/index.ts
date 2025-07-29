@@ -6,6 +6,16 @@ chrome.runtime.onMessage.addListener((message: Message, _, sendResponse) => {
   return true
 })
 
+chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
+  if (changeInfo.status === 'complete' && tab.url) {
+    await updateSiteProgress(tabId, tab.url)
+  }
+})
+
+chrome.tabs.onRemoved.addListener(async tabId => {
+  await removeTrackedTab(tabId)
+})
+
 async function handleMessage(
   message: Message,
   sendResponse: (response: any) => void
@@ -33,7 +43,6 @@ async function handleMessage(
   }
 }
 
-// Storage operations
 async function getSites(): Promise<Site[]> {
   const result = await chrome.storage.local.get<StorageData>(['sites'])
   return result.sites || []
@@ -45,7 +54,7 @@ async function addSite(
   const sites = await getSites()
   const newSite: Site = {
     ...siteData,
-    id: generateId(),
+    id: crypto.randomUUID(),
     createdAt: Date.now(),
   }
 
@@ -61,16 +70,14 @@ async function removeSite(siteId: string): Promise<void> {
   await chrome.storage.local.set({ sites: updatedSites })
 }
 
-async function updateSiteLastVisited(siteId: string): Promise<void> {
-  const sites = await getSites()
-  const updatedSites = sites.map(site =>
-    site.id === siteId ? { ...site, lastVisited: Date.now() } : site
-  )
-  await chrome.storage.local.set({ sites: updatedSites })
-}
-
 async function openSite(siteId: string): Promise<TabInfo> {
-  const sites = await getSites()
+  const result = await chrome.storage.local.get<StorageData>([
+    'trackedTabs',
+    'sites',
+  ])
+
+  const trackedTabs = result.trackedTabs || []
+  const sites = result.sites || []
   const site = sites.find(s => s.id === siteId)
   if (!site) {
     throw new Error(`Site ${siteId} not found`)
@@ -83,28 +90,15 @@ async function openSite(siteId: string): Promise<TabInfo> {
     siteId: site.id,
   }
 
-  const result = await chrome.storage.local.get<StorageData>(['trackedTabs'])
-  const trackedTabs = result.trackedTabs || []
-  trackedTabs.push(tabInfo)
-
-  await chrome.storage.local.set({ trackedTabs })
-
-  // Update last visited
-  await updateSiteLastVisited(site.id)
+  await chrome.storage.local.set({
+    trackedTabs: [...trackedTabs, tabInfo],
+    sites: sites.map(s =>
+      s.id === site.id ? { ...s, lastVisited: Date.now() } : s
+    ),
+  })
 
   return tabInfo
 }
-
-// Tab tracking operations
-chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
-  if (changeInfo.status === 'complete' && tab.url) {
-    await updateSiteProgress(tabId, tab.url)
-  }
-})
-
-chrome.tabs.onRemoved.addListener(async tabId => {
-  await removeTrackedTab(tabId)
-})
 
 async function updateSiteProgress(tabId: number, newUrl: string) {
   const result = await chrome.storage.local.get<StorageData>([
@@ -124,7 +118,6 @@ async function updateSiteProgress(tabId: number, newUrl: string) {
   }
 
   await chrome.storage.local.set({ sites })
-  console.log(`Updated progress for site ${trackedTab.siteId} to ${newUrl}`)
 }
 
 async function removeTrackedTab(tabId: number) {
@@ -133,11 +126,4 @@ async function removeTrackedTab(tabId: number) {
 
   const updatedTrackedTabs = trackedTabs.filter(t => t.tabId !== tabId)
   await chrome.storage.local.set({ trackedTabs: updatedTrackedTabs })
-
-  console.log(`Removed tracked tab ${tabId}`)
-}
-
-// Utility function for generating IDs
-function generateId(): string {
-  return Math.random().toString(36).substr(2, 9)
 }
