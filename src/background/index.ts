@@ -21,11 +21,6 @@ async function handleMessage(
   sendResponse: (response: any) => void
 ) {
   switch (message.type) {
-    case 'GET_SITES':
-      const sites = await getSites()
-      sendResponse(sites)
-      break
-
     case 'ADD_SITE':
       const newSite = await addSite(message.request)
       sendResponse(newSite)
