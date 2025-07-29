@@ -1,6 +1,4 @@
-import React, { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import {
   Card,
   CardContent,
@@ -9,147 +7,254 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { formatDate } from '@/lib/utils'
 import { Site } from '@/types'
-import { getDomainFromUrl, formatDate } from '@/lib/utils'
-import { XIcon } from 'lucide-react'
+import {
+  useMutation,
+  useQueryClient,
+  useSuspenseQuery,
+} from '@tanstack/react-query'
+import { ArrowLeftIcon, Loader2Icon, PlusIcon, XIcon } from 'lucide-react'
+import { Suspense, useState } from 'react'
 import { sendMessage } from './sendMessage'
 
-export function App() {
-  const [sites, setSites] = useState<Site[]>([])
-  const [newUrl, setNewUrl] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
+type Page = 'empty' | 'add' | 'list'
 
-  useEffect(() => {
-    loadSites()
-  }, [])
+function LoadingSpinner() {
+  return (
+    <div className="p-4 flex items-center justify-center">
+      <div className="flex items-center space-x-2">
+        <Loader2Icon className="w-4 h-4 animate-spin" />
+        <span className="text-sm text-muted-foreground">Loading...</span>
+      </div>
+    </div>
+  )
+}
 
-  const loadSites = async () => {
-    const response = await sendMessage('GET_SITES')
-    setSites(response || [])
-  }
+function AppContent() {
+  const queryClient = useQueryClient()
+  const { data: sites } = useSuspenseQuery({
+    queryKey: ['sites'],
+    queryFn: () => sendMessage('GET_SITES'),
+  })
 
-  const addSite = async () => {
-    if (!newUrl.trim()) {
-      return
-    }
+  const { mutateAsync: addSite, isPending: isSubmitting } = useMutation({
+    mutationFn: async (site: Pick<Site, 'name' | 'url'>) => {
+      if (!site.name.trim() || !site.url.trim()) {
+        return
+      }
 
-    setIsLoading(true)
-    const url = newUrl.trim()
-    const domain = getDomainFromUrl(url)
+      const siteData = {
+        name: formData.name.trim(),
+        url: formData.url.trim(),
+        currentPage: formData.url.trim(),
+        lastVisited: Date.now(),
+      }
 
-    const siteData = {
-      name: domain,
-      url,
-      currentPage: url,
-      lastVisited: Date.now(),
-    }
+      setFormData({ name: '', url: '' })
+      setCurrentPage('list')
 
-    const response = await sendMessage('ADD_SITE', siteData)
+      return sendMessage('ADD_SITE', siteData)
+    },
+    onSuccess: data => {
+      queryClient.invalidateQueries({ queryKey: ['sites'] })
+      // queryClient.setQueryData(['sites'], data)
+    },
+  })
 
-    setSites(prevSites => [...prevSites, response])
-    setNewUrl('')
-    setIsLoading(false)
-  }
+  const [currentPage, setCurrentPage] = useState<Page>(
+    sites.length === 0 ? 'empty' : 'list'
+  )
+  const [formData, setFormData] = useState({ name: '', url: '' })
 
-  const removeSite = async (siteId: string) => {
-    await sendMessage('REMOVE_SITE', { siteId })
-    setSites(prevSites => prevSites.filter(site => site.id !== siteId))
-  }
+  const { mutateAsync: removeSite } = useMutation({
+    mutationFn: async (siteId: string) => {
+      await sendMessage('REMOVE_SITE', { siteId })
+      queryClient.invalidateQueries({ queryKey: ['sites'] })
+      queryClient.setQueryData(['sites'], (data: Site[]) =>
+        data.filter(site => site.id !== siteId)
+      )
+    },
+  })
 
   const openSite = async (site: Site) => {
     await sendMessage('OPEN_SITE', { siteId: site.id })
-
-    setSites(prevSites =>
-      prevSites.map(s =>
-        s.id === site.id ? { ...s, lastVisited: Date.now() } : s
-      )
-    )
+    queryClient.invalidateQueries({ queryKey: ['sites'] })
   }
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      addSite()
-    }
-  }
-
-  return (
-    <div className="p-4 space-y-4">
-      <div className="text-center">
-        <h1 className="text-2xl font-bold mb-2">Learning Tracker</h1>
-        <p className="text-sm text-muted-foreground">
-          Track your progress on documentation websites
-        </p>
+  const renderEmptyState = () => (
+    <div className="p-4 space-y-6">
+      <div className="text-center space-y-4">
+        <div className="w-16 h-16 mx-auto bg-muted rounded-full flex items-center justify-center">
+          <PlusIcon className="w-8 h-8 text-muted-foreground" />
+        </div>
+        <div>
+          <h1 className="text-2xl font-bold mb-2">
+            Welcome to Learning Tracker
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Start tracking your progress on documentation websites
+          </p>
+        </div>
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Add New Site</CardTitle>
-          <CardDescription>
-            Enter the URL of a documentation website you want to track
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex space-x-2">
-            <Input
-              placeholder="https://playwright.dev/"
-              value={newUrl}
-              onChange={e => setNewUrl(e.target.value)}
-              onKeyPress={handleKeyPress}
-              disabled={isLoading}
-            />
-            <Button onClick={addSite} disabled={isLoading || !newUrl.trim()}>
-              {isLoading ? 'Adding...' : 'Add'}
+        <CardContent className="pt-6">
+          <div className="text-center space-y-4">
+            <p className="text-muted-foreground">
+              No sites added yet. Add your first documentation site to get
+              started!
+            </p>
+            <Button
+              onClick={() => setCurrentPage('add')}
+              className="w-full"
+              size="lg"
+            >
+              <PlusIcon className="w-4 h-4 mr-2" />
+              Add Your First Site
             </Button>
           </div>
         </CardContent>
       </Card>
+    </div>
+  )
+
+  const renderAddForm = () => (
+    <div className="p-4 space-y-4">
+      <div className="flex items-center space-x-2">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setCurrentPage(sites.length === 0 ? 'empty' : 'list')}
+          disabled={isSubmitting}
+        >
+          <ArrowLeftIcon className="w-4 h-4" />
+        </Button>
+        <h1 className="text-xl font-semibold">Add New Site</h1>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Site Information</CardTitle>
+          <CardDescription>
+            Enter the details of the documentation website you want to track
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <label htmlFor="name" className="text-sm font-medium">
+              Site Name
+            </label>
+            <Input
+              name="name"
+              value={formData.name}
+              onChange={e =>
+                setFormData(prev => ({ ...prev, name: e.target.value }))
+              }
+              disabled={isSubmitting}
+            />
+          </div>
+          <div className="space-y-2">
+            <label htmlFor="url" className="text-sm font-medium">
+              URL
+            </label>
+            <Input
+              name="url"
+              value={formData.url}
+              onChange={e =>
+                setFormData(prev => ({ ...prev, url: e.target.value }))
+              }
+              disabled={isSubmitting}
+            />
+          </div>
+        </CardContent>
+        <CardFooter>
+          <Button
+            onClick={() => addSite(formData)}
+            disabled={
+              isSubmitting || !formData.name.trim() || !formData.url.trim()
+            }
+            className="w-full"
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2Icon className="w-4 h-4 mr-2 animate-spin" />
+                Adding...
+              </>
+            ) : (
+              'Add Site'
+            )}
+          </Button>
+        </CardFooter>
+      </Card>
+    </div>
+  )
+
+  const renderSiteList = () => (
+    <div className="p-4 space-y-4">
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-semibold">Your Learning Sites</h1>
+        <Button size="sm" onClick={() => setCurrentPage('add')}>
+          <PlusIcon className="w-4 h-4 mr-2" />
+          Add Site
+        </Button>
+      </div>
 
       <div className="space-y-3">
-        <h2 className="text-lg font-semibold">Your Learning Sites</h2>
-        {sites.length === 0 ? (
-          <Card>
-            <CardContent className="pt-6">
-              <p className="text-center text-muted-foreground">
-                No sites added yet. Add your first documentation site above!
-              </p>
-            </CardContent>
+        {sites.map(site => (
+          <Card key={site.id} className="hover:shadow-md transition-shadow">
+            <CardHeader className="pb-3">
+              <div className="flex justify-between items-start">
+                <div className="flex-1">
+                  <CardTitle className="text-base">{site.name}</CardTitle>
+                  <CardDescription className="text-xs break-all">
+                    {site.currentPage}
+                  </CardDescription>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => removeSite(site.id)}
+                  className="text-destructive hover:text-destructive"
+                >
+                  <XIcon className="w-4 h-4" />
+                  <span className="sr-only">Remove site</span>
+                </Button>
+              </div>
+            </CardHeader>
+            <CardFooter className="pt-0">
+              <div className="flex justify-between items-center w-full">
+                <span className="text-xs text-muted-foreground">
+                  Last visited: {formatDate(site.lastVisited)}
+                </span>
+                <Button size="sm" onClick={() => openSite(site)}>
+                  Continue Learning
+                </Button>
+              </div>
+            </CardFooter>
           </Card>
-        ) : (
-          sites.map(site => (
-            <Card key={site.id} className="hover:shadow-md transition-shadow">
-              <CardHeader className="pb-3">
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <CardTitle className="text-base">{site.name}</CardTitle>
-                    <CardDescription className="text-xs break-all">
-                      {site.currentPage}
-                    </CardDescription>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeSite(site.id)}
-                    className="text-destructive hover:text-destructive"
-                  >
-                    <XIcon className="w-4 h-4" />
-                    <span className="sr-only">Remove site</span>
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardFooter className="pt-0">
-                <div className="flex justify-between items-center w-full">
-                  <span className="text-xs text-muted-foreground">
-                    Last visited: {formatDate(site.lastVisited)}
-                  </span>
-                  <Button size="sm" onClick={() => openSite(site)}>
-                    Continue Learning
-                  </Button>
-                </div>
-              </CardFooter>
-            </Card>
-          ))
-        )}
+        ))}
       </div>
     </div>
+  )
+
+  switch (currentPage) {
+    case 'empty':
+      return renderEmptyState()
+    case 'add':
+      return renderAddForm()
+    case 'list':
+      return renderSiteList()
+    default:
+      return renderEmptyState()
+  }
+}
+
+export function App() {
+  return (
+    <Suspense fallback={<LoadingSpinner />}>
+      <AppContent />
+    </Suspense>
   )
 }
