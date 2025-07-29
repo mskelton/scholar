@@ -75,7 +75,6 @@ function App() {
 
     await chrome.storage.local.set({ trackedTabs })
 
-    // Update the site's last visited time
     const updatedSites = sites.map(s =>
       s.id === site.id ? { ...s, lastVisited: Date.now() } : s
     )
