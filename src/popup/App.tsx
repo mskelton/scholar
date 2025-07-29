@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/card'
 import { LearningSite } from '@/types'
 import { generateId, getDomainFromUrl, formatDate } from '@/lib/utils'
+import { XIcon } from 'lucide-react'
 
 function App() {
   const [sites, setSites] = useState<LearningSite[]>([])
@@ -22,48 +23,36 @@ function App() {
   }, [])
 
   const loadSites = async () => {
-    try {
-      const result = await chrome.storage.local.get(['sites'])
-      setSites(result.sites || [])
-    } catch (error) {
-      console.error('Error loading sites:', error)
-    }
+    const result = await chrome.storage.local.get(['sites'])
+    setSites(result.sites || [])
   }
 
   const saveSites = async (updatedSites: LearningSite[]) => {
-    try {
-      await chrome.storage.local.set({ sites: updatedSites })
-      setSites(updatedSites)
-    } catch (error) {
-      console.error('Error saving sites:', error)
-    }
+    await chrome.storage.local.set({ sites: updatedSites })
+    setSites(updatedSites)
   }
 
   const addSite = async () => {
     if (!newUrl.trim()) return
 
     setIsLoading(true)
-    try {
-      const url = newUrl.trim()
-      const domain = getDomainFromUrl(url)
+    const url = newUrl.trim()
+    const domain = getDomainFromUrl(url)
 
-      const newSite: LearningSite = {
-        id: generateId(),
-        name: domain,
-        url,
-        currentPage: url,
-        lastVisited: Date.now(),
-        createdAt: Date.now(),
-      }
-
-      const updatedSites = [...sites, newSite]
-      await saveSites(updatedSites)
-      setNewUrl('')
-    } catch (error) {
-      console.error('Error adding site:', error)
-    } finally {
-      setIsLoading(false)
+    const newSite: LearningSite = {
+      id: generateId(),
+      name: domain,
+      url,
+      currentPage: url,
+      lastVisited: Date.now(),
+      createdAt: Date.now(),
     }
+
+    const updatedSites = [...sites, newSite]
+    await saveSites(updatedSites)
+
+    setNewUrl('')
+    setIsLoading(false)
   }
 
   const removeSite = async (siteId: string) => {
@@ -72,31 +61,25 @@ function App() {
   }
 
   const openSite = async (site: LearningSite) => {
-    try {
-      // Create a new tab and track it
-      const tab = await chrome.tabs.create({ url: site.currentPage })
+    const tab = await chrome.tabs.create({ url: site.currentPage })
 
-      // Store the tab info for tracking
-      const tabInfo = {
-        tabId: tab.id!,
-        siteId: site.id,
-        url: site.currentPage,
-      }
-
-      const result = await chrome.storage.local.get(['trackedTabs'])
-      const trackedTabs = result.trackedTabs || []
-      trackedTabs.push(tabInfo)
-
-      await chrome.storage.local.set({ trackedTabs })
-
-      // Update the site's last visited time
-      const updatedSites = sites.map(s =>
-        s.id === site.id ? { ...s, lastVisited: Date.now() } : s
-      )
-      await saveSites(updatedSites)
-    } catch (error) {
-      console.error('Error opening site:', error)
+    const tabInfo = {
+      tabId: tab.id!,
+      siteId: site.id,
+      url: site.currentPage,
     }
+
+    const result = await chrome.storage.local.get(['trackedTabs'])
+    const trackedTabs = result.trackedTabs || []
+    trackedTabs.push(tabInfo)
+
+    await chrome.storage.local.set({ trackedTabs })
+
+    // Update the site's last visited time
+    const updatedSites = sites.map(s =>
+      s.id === site.id ? { ...s, lastVisited: Date.now() } : s
+    )
+    await saveSites(updatedSites)
   }
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -114,7 +97,6 @@ function App() {
         </p>
       </div>
 
-      {/* Add new site */}
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">Add New Site</CardTitle>
@@ -138,7 +120,6 @@ function App() {
         </CardContent>
       </Card>
 
-      {/* Sites list */}
       <div className="space-y-3">
         <h2 className="text-lg font-semibold">Your Learning Sites</h2>
         {sites.length === 0 ? (
@@ -166,7 +147,8 @@ function App() {
                     onClick={() => removeSite(site.id)}
                     className="text-destructive hover:text-destructive"
                   >
-                    ×
+                    <XIcon className="w-4 h-4" />
+                    <span className="sr-only">Remove site</span>
                   </Button>
                 </div>
               </CardHeader>
