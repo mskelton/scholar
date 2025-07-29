@@ -45,7 +45,7 @@ export function SiteList() {
       </div>
 
       <div className="space-y-3">
-        {sites.map(site => (
+        {sites.map((site) => (
           <Card key={site.id} className="hover:shadow-md transition-shadow">
             <CardHeader className="pb-3">
               <div className="flex justify-between items-start">

@@ -74,8 +74,8 @@ export function AddSite() {
               id="name"
               placeholder="e.g., Playwright Docs"
               value={formData.name}
-              onChange={e =>
-                setFormData(prev => ({ ...prev, name: e.target.value }))
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, name: e.target.value }))
               }
               disabled={isSubmitting}
             />
@@ -88,8 +88,8 @@ export function AddSite() {
               id="url"
               placeholder="https://playwright.dev/"
               value={formData.url}
-              onChange={e =>
-                setFormData(prev => ({ ...prev, url: e.target.value }))
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, url: e.target.value }))
               }
               disabled={isSubmitting}
             />

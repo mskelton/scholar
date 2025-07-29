@@ -1,20 +1,28 @@
-# Learning Progress Tracker - Chrome Extension
+# Scholar
 
-A Chrome extension that helps you track your learning progress on documentation websites. Perfect for developers who want to keep track of their progress while reading through documentation like Playwright, VSCode docs, or any other technical documentation.
+A Chrome extension that helps you track your learning progress on documentation
+websites. Perfect for developers who want to keep track of their progress while
+reading through documentation like Playwright, VSCode docs, or any other
+technical documentation.
 
 ## Features
 
-- **Add Documentation Sites**: Easily add any documentation website to your learning list
-- **Track Progress**: Automatically tracks the latest page you've visited on each site
+- **Add Documentation Sites**: Easily add any documentation website to your
+  learning list
+- **Track Progress**: Automatically tracks the latest page you've visited on
+  each site
 - **Continue Learning**: One-click access to continue where you left off
 - **Clean Interface**: Modern, intuitive UI built with React and Shadcn UI
-- **Persistent Storage**: Your progress is saved locally and persists between sessions
+- **Persistent Storage**: Your progress is saved locally and persists between
+  sessions
 
 ## Workflow
 
-1. **Add a Site**: Open the extension and add a URL (e.g., https://playwright.dev/)
+1. **Add a Site**: Open the extension and add a URL (e.g.,
+   https://playwright.dev/)
 2. **Start Learning**: Click "Continue Learning" to open the site in a new tab
-3. **Track Progress**: The extension automatically tracks your navigation within the site
+3. **Track Progress**: The extension automatically tracks your navigation within
+   the site
 4. **Close When Done**: Simply close the tab when you're finished for the day
 
 ## Development
