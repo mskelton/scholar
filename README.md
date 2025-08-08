@@ -47,3 +47,9 @@ The extension requires the following permissions:
 3. Make your changes
 4. Run `yarn format` to format your code
 5. Submit a pull request
+
+## Releasing
+
+```bash
+zip -r scholar.zip 'dist/**'
+```
