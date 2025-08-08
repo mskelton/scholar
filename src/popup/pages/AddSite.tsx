@@ -6,7 +6,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { XIcon } from 'lucide-react'
 import { useState } from 'react'
 import { goBack } from 'react-chrome-extension-router'
-import { sendMessage } from '../sendMessage'
+import { sendMessage } from '../utils/sendMessage'
 
 export function AddSite() {
   const queryClient = useQueryClient()

@@ -20,7 +20,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { XIcon } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-chrome-extension-router'
-import { sendMessage } from '../sendMessage'
+import { sendMessage } from '../utils/sendMessage'
 import { useSites } from '../utils/useSites'
 import { AddSite } from './AddSite'
 
