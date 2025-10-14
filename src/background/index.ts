@@ -108,8 +108,14 @@ async function updateSiteProgress(tabId: number, newUrl: string) {
 
   const site = sites.find((s) => s.id === trackedTab.siteId)
   if (site) {
-    site.currentPage = newUrl
-    site.lastVisited = Date.now()
+    const existingHostname = new URL(site.url).hostname
+    const newHostname = new URL(newUrl).hostname
+
+    // Only update if the hostname is the same
+    if (newHostname === existingHostname) {
+      site.currentPage = newUrl
+      site.lastVisited = Date.now()
+    }
   }
 
   await chrome.storage.local.set({ sites })
