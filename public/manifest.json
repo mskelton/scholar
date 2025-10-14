@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "name": "Scholar",
   "description": "Track your progress when reading docs",
   "permissions": ["storage", "tabs", "activeTab"],

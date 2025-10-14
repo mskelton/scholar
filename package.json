@@ -1,6 +1,6 @@
 {
   "name": "scholar",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A Chrome extension that helps you track your progress when reading docs",
   "packageManager": "yarn@4.9.2",
   "type": "module",
